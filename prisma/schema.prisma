@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  id       String @id
+  email    String @unique
+  password String
+  id_role  Int
+
+  lenders lenders?
+  admins  admins?
+
+  role roles @relation(fields: [id_role], references: [id])
+}
+
+model roles {
+  id    Int     @id
+  name  String  @unique
+  users users[]
+}
+
+model lenders {
+  id      Int    @id @default(autoincrement())
+  name    String
+  id_user String @unique
+
+  user users @relation(fields: [id_user], references: [id], onDelete: Cascade)
+}
+
+model admins {
+  id      Int    @id @default(autoincrement())
+  id_user String @unique
+
+  user users @relation(fields: [id_user], references: [id], onDelete: Cascade)
+}
+
+model semesters {
+  id       Int        @id
+  name     String
+  students students[]
+}
+
+model careers {
+  id       Int        @id
+  name     String
+  students students[]
+}
+
+model students {
+  id               Int    @id @default(autoincrement())
+  name             String
+  paternal_surname String
+  maternal_surname String
+  plate            String @unique
+  id_semester      Int
+  id_career        Int
+  email            String
+
+  career   careers   @relation(fields: [id_career], references: [id])
+  semester semesters @relation(fields: [id_semester], references: [id])
+
+  attendances attendances[]
+  homeworks   homeworks[]
+}
+
+model sessions {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique
+  date       DateTime @unique
+  start_time DateTime
+  end_time   DateTime
+  check      Boolean  @default(false)
+  uploaded   Boolean  @default(false)
+
+  attendances attendances[]
+  homeworks   homeworks[]
+}
+
+model attendances {
+  id         Int     @id @default(autoincrement())
+  id_session Int
+  id_student Int
+  done       Boolean
+
+  student students @relation(fields: [id_student], references: [id], onDelete: Cascade)
+  session sessions @relation(fields: [id_session], references: [id], onDelete: Cascade)
+}
+
+model homeworks {
+  id         Int     @id @default(autoincrement())
+  id_session Int
+  id_student Int
+  done       Boolean
+
+  student students @relation(fields: [id_student], references: [id], onDelete: Cascade)
+  session sessions @relation(fields: [id_session], references: [id], onDelete: Cascade)
+}
+
+model invitationcode {
+  id     Int      @id @default(autoincrement())
+  code   String
+  expire DateTime
+  active Boolean
+}
